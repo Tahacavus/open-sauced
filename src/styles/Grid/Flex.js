@@ -24,6 +24,10 @@ const FlexColumnCenter = styled(FlexCenter)`
 const FlexColumn = styled.div`
   display: flex;
   flex-direction: column;
+
+  .fpyAse {
+    margin-top: 0;
+  }
 `;
 
 const FlexStart = styled(FlexCenter)`
@@ -45,6 +49,9 @@ const SpaceBetween = styled.div`
   -webkit-justify-content: space-between;
 
   ${MEDIA.TABLET`
+    .productive-developer {
+      display: none;
+    }
     flex-direction: column;
   `};
 `;

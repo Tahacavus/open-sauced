@@ -19,7 +19,8 @@ const Button = styled.button`
   font-size: ${fontSize.default};
   font-weight: 600;
   min-height: 35px;
-  min-width: 68px;
+  min-width: ${props => props.minWidth ? `${props.minWidth}px` : "68px"};
+  ${props => props.maxWidth && `max-width: ${props.maxWidth}px`};
   margin-bottom: ${size.tiny};
   margin-right: ${size.micro};
   outline: none;
@@ -41,7 +42,19 @@ const Button = styled.button`
   }
 
   &:disabled {
+    background: ${colors.lighterGrey};
+    color: ${colors.darkestGrey};
     cursor: not-allowed;
+  }
+`;
+
+export const IconButton = styled.button` 
+  all: unset;
+  margin-left: 15px;
+  img {
+    height: 20px;
+    width: 20px;
+    padding-bottom: 7px;
   }
 `;
 

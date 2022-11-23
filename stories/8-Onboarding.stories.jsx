@@ -1,21 +1,22 @@
 import React, {useState} from "react";
-import Button, {IconButton} from "../styles/Button";
-import Illustration from "../styles/Illustration";
-import {ContextStyle} from "../styles/Card";
-import {SpaceBetweenTop, SpaceBetween} from "../styles/Grid";
-import api from "../lib/apiGraphQL";
-import {goalsReducer} from "../lib/reducers";
-import {devProductive} from "../illustrations";
-import {appInstall} from "../images";
-import Cards from "./Card";
-import {CreateGoalsContainer, OnBoardingText} from "../styles/Container";
+import Button, {IconButton} from "../src/styles/Button";
+import Illustration from "../src/styles/Illustration";
+import {ContextStyle} from "../src/styles/Card";
+import {SpaceBetweenTop, SpaceBetween} from "../src/styles/Grid";
+import {devProductive} from "../src/illustrations";
+import Cards from "../src/components/Card";
+import {CreateGoalsContainer, OnBoardingText} from "../src/styles/Container";
 import {Tooltip, TooltipTrigger} from "@radix-ui/react-tooltip";
-import {TooltipContainer, TooltipArrowComponent} from "../styles/Tooltip";
-import {capturePostHogAnalytics} from "../lib/analytics";
-import RepositoryAvatar from "../styles/RepositoryAvatar";
-import {diary} from "../illustrations";
-import {help} from "../icons";
-import { CreateGoalsRepoNav } from "../styles/Header";
+import {TooltipContainer, TooltipArrowComponent} from "../src/styles/Tooltip";
+import {help} from "../src/icons";
+import {appInstall} from "../src/images";
+import { CreateGoalsRepoNav } from "../src/styles/Header";
+import RepositoryAvatar from "../src/styles/RepositoryAvatar";
+import {diary} from "../src/illustrations";
+
+export default {
+    title: "Onboardring"
+};
 
 const repoInfo = [
   {
@@ -54,60 +55,15 @@ function CreateApp() {
   );
 }
 
-function CreateGoals({installNeeded, databaseCreated, goalsId, onGoalAdded, user, onRepoCreation}) {
+ export function OnboardingFlow() {
   const [selectedRepo, setSelectedRepo] = useState(0);
-  const [repoAdded, setRepoAdded] = useState(false);
-  const [installReady, setInstallReady] = useState(installNeeded);
+  const [installReady, setInstallReady] = useState(false);
+  const [databaseCreated, setDatabaseCreated] = useState(false);
   const _handleRepoCreation = () => {
-    capturePostHogAnalytics('Onboarding Flow', 'repoCreationBtn', 'clicked');
-
-    api.fetchOwnerId(user.login).then(ownerRes => {
-      const {
-        data: {
-          gitHub: {
-            user: {id},
-          },
-        },
-      } = ownerRes;
-
-      api
-        .createOpenSaucedGoalsRepo(id)
-        .then(goalsRes => {
-          const {errors, data} = goalsRes;
-
-          if (errors && errors.length > 0) {
-            console.log(`"${errors[0].message}"`);
-          }
-
-          setInstallReady(data.gitHub === null);
-
-          if (data.gitHub) {
-            const {
-              gitHub: {
-                cloneTemplateRepository: {
-                  repository: {id},
-                },
-              },
-            } = data;
-
-            onRepoCreation(id, goalsReducer(goalsRes, {type: "CREATE"}));
-          }
-        })
-        .catch(err => console.log(err));
-    });
+    setInstallReady(prevState => true);
   };
-
-  const _handleGoalCreation = async( repoUrl ) => {
-    setRepoAdded(true);
-    api
-      .createGoal(goalsId, repoUrl, null)
-      .then(response => {
-        onGoalAdded(response.data.gitHub.createIssue.issue);
-      })
-      .catch(e => {
-        setRepoAdded(false);
-        console.error(e)
-      });
+  const _handleDatabaseCreation = () => {
+    setDatabaseCreated(prevState => true);
   };
 
   return (
@@ -124,7 +80,7 @@ function CreateGoals({installNeeded, databaseCreated, goalsId, onGoalAdded, user
               <h1>1</h1>
               <p>Let's sync Open Sauced with your GitHub Repos</p>
             </OnBoardingText>
-            <Button primary minWidth={175} maxWidth={175} onClick={_handleRepoCreation} disabled={installReady || databaseCreated}>
+            <Button primary minWidth={175} maxWidth={175} onClick={_handleRepoCreation} disabled={installReady}>
               Sync Repos
             </Button>
           </SpaceBetween>
@@ -135,7 +91,7 @@ function CreateGoals({installNeeded, databaseCreated, goalsId, onGoalAdded, user
               <h1>2</h1>
               <p>Now let's create the Open Sauced database on GitHub</p>
               <Tooltip delayDuration={200}>
-                <TooltipTrigger asChild disabled={!installReady || databaseCreated}>
+                <TooltipTrigger asChild>
                   <IconButton>
                     <img className="svg" alt="tool-tip" src={help} />
                   </IconButton>
@@ -149,20 +105,12 @@ function CreateGoals({installNeeded, databaseCreated, goalsId, onGoalAdded, user
             </OnBoardingText>
             <a
               rel="noreferrer"
-              target="_blank"
-              href={`https://github.com/apps/open-sauced/installations/new/permissions?target_id=${user && user.id}`}>
-              <Button
-                primary minWidth={175}
-                maxWidth={175}
-                disabled={!installReady}
-                onClick={() => capturePostHogAnalytics('Onboarding Flow', 'databaseCreationbtn', 'clicked')}>
-                Create database
-              </Button>
+              target="_blank">
+              <Button primary minWidth={175} maxWidth={175} disabled={!installReady} onClick={_handleDatabaseCreation}>Create database</Button>
             </a>
           </SpaceBetween>
         </Cards>
-        
-        <Cards disabled={!databaseCreated || repoAdded}>
+        <Cards disabled={!databaseCreated}>
           <SpaceBetween>
             <OnBoardingText>
               <h1>3</h1>
@@ -175,7 +123,7 @@ function CreateGoals({installNeeded, databaseCreated, goalsId, onGoalAdded, user
                 {
                   repoInfo.map((repo, index) => 
                     <Button key={`repoNav${index + 1}`} onClick={() => setSelectedRepo(index)}>
-                    {`${repo.repoOwner} / ${repo.repoName}`}
+                      {`${repo.repoOwner}/${repo.repoName}`}
                     </Button>
                 )}
               </CreateGoalsRepoNav>
@@ -196,10 +144,10 @@ function CreateGoals({installNeeded, databaseCreated, goalsId, onGoalAdded, user
                     </em>
                   </small>
                   <div style={{ paddingTop: 30 }}>
-                    <Button primary minWidth={175} disabled={repoAdded} onClick={() => _handleGoalCreation(`${repoInfo[selectedRepo].repoOwner}/${repoInfo[selectedRepo].repoName}`)}>{repoAdded ? "Repo added" : "Add Repo"}</Button>
+                    <Button primary minWidth={175} >Add Repo"</Button>
                   </div>
                 </div>
-                <Illustration className="productive-developer" alt="Done checking add repo" src={diary} />
+                <Illustration className="productive-developer" alt="productive developer image" src={diary} />
               </SpaceBetweenTop>
             </>
           )}
@@ -208,5 +156,3 @@ function CreateGoals({installNeeded, databaseCreated, goalsId, onGoalAdded, user
     </React.Fragment>
   );
 }
-
-export default CreateGoals;

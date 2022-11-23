@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useState} from "react";
 import Dashboard from "../containers/Dashboard";
 import Footer from "../components/Footer";
-import DashboardFooter from "../components/DashboardFooter";
 import Nav from "../components/Nav";
 import Repository from "../components/Repository";
 import {BrowserRouter as Router, Route, Redirect, Switch, useHistory} from "react-router-dom";
@@ -13,6 +12,7 @@ import LocaleContext from "../Context";
 import ThemeContext from "../ThemeContext";
 import auth from "../hoc/AuthHOC";
 import {ohno} from "../images";
+import systemIsDark from "../lib/systemIsDark";
 
 function NoMatch() {
   const history = useHistory();
@@ -45,9 +45,9 @@ function App({handleLogIn, handleLogOut, user, isAdmin, isLoggedIn}) {
     }),
     [goalsId],
   );
-  const systemIsDark = () => {
+/*   const systemIsDark = () => {
     return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  };
+  }; */
   const applyTheme = () => {
     if (theme === "system") {
       localStorage.removeItem("theme");
@@ -71,9 +71,6 @@ function App({handleLogIn, handleLogOut, user, isAdmin, isLoggedIn}) {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "system");
   useEffect(applyTheme, [theme]);
 
-  // replaced dyanmicaly
-  const date = '__DATE__'
-
   return (
     <Router>
       <ThemeContext.Provider value={[theme, setTheme]}>
@@ -88,19 +85,22 @@ function App({handleLogIn, handleLogOut, user, isAdmin, isLoggedIn}) {
 
           <Switch>
             <Route exact path="/" component={guard(Dashboard)} />
-            <Route path="/repos/:repoOwner/:repoName/:id" component={guard(Repository)} />
+            <Route path="/repos/:repoOwner/:repoName" render={({match})=>{
+              return <Repository user={user} match={match} />
+            }}></Route>
             <Route path="/callback" component={guard(Dashboard)} />
-            <Route exact path="/logout" render={() => (
-              isLoggedIn ? (
-                handleLogOut()
-              ) : (
-                <Redirect to="/" />
-              )
-            )}/>
+            <Route exact path="/logout" render={() => {
+              return (
+                isLoggedIn ? (
+                  handleLogOut()
+                ) : (
+                  <Redirect to="/" />
+                )
+              );
+            }}/>
             <Route component={NoMatch} />
           </Switch>
-          {!user && <Footer date={date} />}
-          {user && <DashboardFooter />}
+          <Footer />
         </LocaleContext.Provider>
       </ThemeContext.Provider>
     </Router>

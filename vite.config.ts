@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import ViteReact from '@vitejs/plugin-react'
 import ViteEslint from '@nabla/vite-plugin-eslint'
-import ViteHtml from 'vite-plugin-html'
+import { createHtmlPlugin } from 'vite-plugin-html'
 import ViteInspect from 'vite-plugin-inspect'
 import ViteLegacy from '@vitejs/plugin-legacy'
 import { VitePWA, VitePWAOptions } from 'vite-plugin-pwa'
@@ -77,11 +77,12 @@ export default defineConfig(({command, mode}: ConfigEnv): UserConfig => {
         ]
       }
     }),
-    ViteHtml({
+    createHtmlPlugin({
       minify: isProd && isBuild,
       inject: {
         data: {
           title: `Open Sauced v${process.env.npm_package_version}`,
+          date: new Date().toISOString(),
         },
       },
     })
@@ -141,7 +142,6 @@ export default defineConfig(({command, mode}: ConfigEnv): UserConfig => {
 
   const replaceOptions = {
     preventAssignment: true,
-    __DATE__: new Date().toISOString(),
     __RELOAD_SW__: true,
   };
 
@@ -156,7 +156,7 @@ export default defineConfig(({command, mode}: ConfigEnv): UserConfig => {
   });
 
   if (isGitpodBuild) {
-    config.base = process.env.WORKSPACE_URL;
+    config.base = process.env.GITPOD_WORKSPACE_URL;
   }
 
   if (isReplitBuild) {
